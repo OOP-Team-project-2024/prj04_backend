@@ -18,5 +18,5 @@ public abstract class BaseUserDate {
     @JoinColumn(name="user_id")
     private User user;
 
-    private LocalDateTime date;
+    private LocalDate date;
 }

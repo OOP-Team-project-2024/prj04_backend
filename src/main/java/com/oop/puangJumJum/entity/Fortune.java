@@ -22,7 +22,7 @@ public class Fortune {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private LocalDateTime date;
+    private LocalDate date;
 
     private int totalScore;
 
