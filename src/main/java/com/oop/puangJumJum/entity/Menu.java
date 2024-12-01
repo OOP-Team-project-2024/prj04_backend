@@ -1,8 +1,10 @@
 package com.oop.puangJumJum.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class Menu extends BaseUserDate{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,6 +15,5 @@ public class FortuneResponseDto {
     private String bestFortune;               // 최고의 운세 항목
     private String luckyPlace;                // 행운의 장소명
     private String luckyMenu;                 // 행운의 메뉴명
-    private int fortuneRank;                  // 운세 등수
     private List<FortuneDetailDto> fortunes; // 개별 운세 상세 정보 리스트
 }
