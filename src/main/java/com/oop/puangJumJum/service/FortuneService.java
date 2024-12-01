@@ -85,7 +85,7 @@ public class FortuneService {
                 .map(m -> m.getUser().getName())
                 .collect(Collectors.toList());
 
-        return new StudentMenuResponseDTO(user.getName(), menuChoice.getMenu(), otherUsers);
+        return new StudentMenuResponseDTO(user.getName(),menuChoice.getRestaurant(), menuChoice.getMenu(), otherUsers);
     }
 
 }

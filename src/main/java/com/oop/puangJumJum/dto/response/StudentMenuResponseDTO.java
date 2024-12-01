@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 public class StudentMenuResponseDTO {
     private String studentName;
+    private String restaurant;
     private String menu;
     private List<String> otherUsers;
 }
