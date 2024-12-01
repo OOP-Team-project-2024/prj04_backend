@@ -2,22 +2,18 @@ package com.oop.puangJumJum.service;
 
 import com.oop.puangJumJum.dto.request.FortuneRankRequestDTO;
 import com.oop.puangJumJum.dto.response.FortuneRankResponseDTO;
+import com.oop.puangJumJum.dto.response.PlaceChoiceResponseDTO;
 import com.oop.puangJumJum.dto.response.StudentMenuResponseDTO;
 import com.oop.puangJumJum.dto.response.UserRankInfoDTO;
-import com.oop.puangJumJum.entity.Fortune;
-import com.oop.puangJumJum.entity.Menu;
-import com.oop.puangJumJum.entity.MenuChoice;
-import com.oop.puangJumJum.entity.User;
+import com.oop.puangJumJum.entity.*;
 import com.oop.puangJumJum.exception.InternalServerException;
 import com.oop.puangJumJum.exception.UserNotFoundException;
-import com.oop.puangJumJum.repository.FortuneRepository;
-import com.oop.puangJumJum.repository.MenuChoiceRepository;
-import com.oop.puangJumJum.repository.MenuRepository;
-import com.oop.puangJumJum.repository.UserRepository;
+import com.oop.puangJumJum.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +30,28 @@ public class FortuneService {
     private MenuRepository menuRepository;
 
     @Autowired
-    private MenuChoiceRepository menuChoiceRepository;
+    private PlaceRepository placeRepository;
+
+
+    public PlaceChoiceResponseDTO getStudentPlaceAndOthers(FortuneRankRequestDTO requestDTO) {
+        String studentNum=requestDTO.getStudentNum();
+        User user = userRepository.findByStudentNum(studentNum)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        LocalDateTime today = LocalDateTime.now().toLocalDate().atStartOfDay();
+        Place studentPlace = placeRepository.findByUserAndDateAfter(user, today)
+                .orElseThrow(() -> new RuntimeException("Place not found for today"));
+
+        PlaceChoice placeChoice = studentPlace.getPlaceChoice();
+
+        List<String> otherUsers = placeRepository.findByPlaceChoice(placeChoice)
+                .stream()
+                .filter(place -> !place.getUser().equals(user)) // 본인 제외
+                .map(place -> place.getUser().getName())
+                .collect(Collectors.toList());
+
+        return new PlaceChoiceResponseDTO(user.getName(), placeChoice.getPlace(), placeChoice.getDetail(), otherUsers);
+    }
 
     public FortuneRankResponseDTO getFortuneRank(FortuneRankRequestDTO requestDTO) {
         try {
@@ -87,5 +104,6 @@ public class FortuneService {
 
         return new StudentMenuResponseDTO(user.getName(),menuChoice.getRestaurant(), menuChoice.getMenu(), otherUsers);
     }
+
 
 }

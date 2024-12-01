@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Getter
 public class Place extends BaseUserDate{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
