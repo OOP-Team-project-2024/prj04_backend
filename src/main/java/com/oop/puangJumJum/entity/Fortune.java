@@ -1,15 +1,16 @@
 package com.oop.puangJumJum.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name="fortune")
 @Getter
-@Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Fortune {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
