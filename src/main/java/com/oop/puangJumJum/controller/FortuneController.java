@@ -5,6 +5,7 @@ import com.oop.puangJumJum.dto.request.FortuneRankRequestDTO;
 import com.oop.puangJumJum.dto.response.FortuneRankResponseDTO;
 import com.oop.puangJumJum.service.FortuneService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,9 +15,9 @@ public class FortuneController {
     @Autowired
     private FortuneService fortuneService;
 
-    // 운세 순위 조회 API
     @PostMapping("/rank")
-    public FortuneRankResponseDTO getFortuneRank(@RequestBody FortuneRankRequestDTO requestDTO) {
-        return fortuneService.getFortuneRank(requestDTO);
+    public ResponseEntity<FortuneRankResponseDTO> getFortuneRank(@RequestBody FortuneRankRequestDTO requestDTO) {
+        FortuneRankResponseDTO response = fortuneService.getFortuneRank(requestDTO);
+        return ResponseEntity.ok(response);
     }
 }
