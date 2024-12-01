@@ -3,6 +3,7 @@ package com.oop.puangJumJum.controller;
 
 import com.oop.puangJumJum.dto.request.FortuneRankRequestDTO;
 import com.oop.puangJumJum.dto.response.FortuneRankResponseDTO;
+import com.oop.puangJumJum.dto.response.PlaceChoiceResponseDTO;
 import com.oop.puangJumJum.dto.response.StudentMenuResponseDTO;
 import com.oop.puangJumJum.service.FortuneService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,12 @@ public class FortuneController {
     @GetMapping("/menu")
     public ResponseEntity<StudentMenuResponseDTO> getStudentMenuAndOthers(@RequestBody FortuneRankRequestDTO requestDTO) {
         StudentMenuResponseDTO responseDTO = fortuneService.getStudentMenuAndOthers(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/place")
+    public ResponseEntity<PlaceChoiceResponseDTO> getStudentPlaceAndOthers(@RequestBody FortuneRankRequestDTO requestDTO) {
+        PlaceChoiceResponseDTO responseDTO = fortuneService.getStudentPlaceAndOthers(requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
 }

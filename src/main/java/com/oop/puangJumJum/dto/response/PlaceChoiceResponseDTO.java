@@ -7,9 +7,9 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class StudentMenuResponseDTO {
+public class PlaceChoiceResponseDTO {
     private String studentName;
-    private String restaurant;
-    private String menu;
+    private String place;
+    private String detail;
     private List<String> otherUsers;
 }
