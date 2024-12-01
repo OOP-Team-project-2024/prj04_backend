@@ -24,6 +24,7 @@ import com.oop.puangJumJum.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,17 +42,57 @@ public class FortuneService {
 
     @Autowired
     private PlaceRepository placeRepository;
+
+    @Autowired
+    private MoneyRepository moneyRepository;
+
+    @Autowired
+    private HealthRepository healthRepository;
+
+    @Autowired
+    private StudyRepository studyRepository;
+
+    @Autowired
+    private LoveRepository loveRepository;
     // 운세 항목에 대한 이모지 유니코드 매핑
     private static final int MONEY_EMOJI = 0x1F4B0;
-    private static final int HEALTH_EMOJI = 0x1F3CB;
+    private static final int HEALTH_EMOJI = 0x1F4AA;
     private static final int STUDY_EMOJI = 0x1F4DA;
     private static final int LOVE_EMOJI = 0x1F495;
+    @Autowired
+    private PlaceChoiceRepository placeChoiceRepository;
+    @Autowired
+    private MenuChoiceRepository menuChoiceRepository;
 
 
-    public FortuneResponseDto generateAndGetFortune(String studentNumber) {
+    public FortuneResponseDto generateAndGetFortune(FortuneRankRequestDTO requestDTO) {
+        String studentNumber = requestDTO.getStudentNum();
         // 1. 날짜 설정
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate now = LocalDate.now();
         String dateString = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        User user = userRepository.findByStudentNum(studentNumber)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        // 기존 운세 확인
+        Optional<Fortune> existingFortune = fortuneRepository.findByUserAndDate(user, now);
+        if (existingFortune.isPresent()) {
+            Fortune fortune = existingFortune.get();
+
+            // 기존 운세가 있을 경우 DTO 반환
+            return FortuneResponseDto.builder()
+                    .date(fortune.getDate())
+                    .totalScore(fortune.getTotalScore())
+                    .totalFortune(fortune.getTotalFortune())
+                    .fortunes(Arrays.asList(
+                            FortuneDetailDto.builder().type("재물운").score(fortune.getMoney().getScore()).detail(fortune.getMoney().getContent()).build(),
+                            FortuneDetailDto.builder().type("건강운").score(fortune.getHealth().getScore()).detail(fortune.getHealth().getContent()).build(),
+                            FortuneDetailDto.builder().type("학업운").score(fortune.getStudy().getScore()).detail(fortune.getStudy().getContent()).build(),
+                            FortuneDetailDto.builder().type("애정운").score(fortune.getLove().getScore()).detail(fortune.getLove().getContent()).build()
+                    ))
+                    .build();
+        }
 
         // 2. 운세 항목 점수 계산
         List<FortuneDetailDto> fortunes = Arrays.asList(
@@ -61,33 +102,90 @@ public class FortuneService {
                 FortuneDetailDto.builder().type("애정운").score(calculateFortuneScore(dateString, studentNumber, LOVE_EMOJI)).detail("").build()
         );
 
-        // 3. 총 점수 및 최고의 운세 항목 계산
+        // 3. 총 점수
         int totalScore = fortunes.stream().mapToInt(FortuneDetailDto::getScore).sum() / fortunes.size();
-        FortuneDetailDto bestFortune = fortunes.stream().max((f1, f2) -> Integer.compare(f1.getScore(), f2.getScore())).orElse(null);
-
         // 4. 행운의 장소와 메뉴
-        String luckyPlace = getLuckyPlace(dateString, studentNumber);
-        String luckyMenu = getLuckyMenu(dateString, studentNumber);
+        PlaceChoice luckyPlace = getLuckyPlace(dateString, studentNumber);
+        Place place = Place.builder()
+                .placeChoice(luckyPlace)
+                .date(now)
+                .user(userRepository.findByStudentNum(studentNumber).orElseThrow(() -> new RuntimeException("User not found")))
+                .build();
+        placeRepository.save(place);
+        MenuChoice luckyMenu = getLuckyMenu(dateString, studentNumber);
+        Menu menu = Menu.builder()
+                .menuChoice(luckyMenu)
+                .date(now)
+                .user(userRepository.findByStudentNum(studentNumber).orElseThrow(() -> new RuntimeException("User not found")))
+                .build();
+        menuRepository.save(menu);
 
+        // 5. 운세 저장
+        Money money = Money.builder()
+                .score(fortunes.get(0).getScore())
+                .content(fortunes.get(0).getDetail())
+                .build();
+        moneyRepository.save(money);
+        Health health = Health.builder()
+                .score(fortunes.get(1).getScore())
+                .content(fortunes.get(1).getDetail())
+                .build();
+        healthRepository.save(health);
+        Study study = Study.builder()
+                .score(fortunes.get(2).getScore())
+                .content(fortunes.get(2).getDetail())
+                .build();
+        studyRepository.save(study);
+        Love love = Love.builder()
+                .score(fortunes.get(3).getScore())
+                .content(fortunes.get(3).getDetail())
+                .build();
+        loveRepository.save(love);
+        Fortune fortune = Fortune.builder()
+                .user(user)
+                .date(now)
+                .totalScore(totalScore)
+                .totalFortune("")
+                .money(money)
+                .health(health)
+                .study(study)
+                .love(love)
+                .build();
+        fortuneRepository.save(fortune);
         // 6. 응답 DTO 구성
         return FortuneResponseDto.builder()
                 .date(now)
                 .totalScore(totalScore)
                 .totalFortune("")
-                .bestFortune(bestFortune.getType())
-                .luckyPlace(luckyPlace)
-                .luckyMenu(luckyMenu)
                 .fortunes(fortunes)
                 .build();
     }
 
 
-    private String getLuckyPlace(String dateString, String studentNumber) {
-        return "";
+    private PlaceChoice getLuckyPlace(String dateString, String studentNumber) {
+        // 날짜와 학생 번호를 기반으로 "운이 좋은 장소"를 계산
+        int hash = (dateString + studentNumber).hashCode(); // 해시값 생성
+        List<PlaceChoice> placeChoices = placeChoiceRepository.findAll(); // DB에서 모든 PlaceChoice 조회
+
+        if (placeChoices.isEmpty()) {
+            throw new RuntimeException("No places available in the database");
+        }
+
+        int index = Math.abs(hash) % placeChoices.size(); // 해시값으로 리스트의 인덱스 결정
+        return placeChoices.get(index); // 운이 좋은 PlaceChoice 객체 반환
     }
 
-    private String getLuckyMenu(String dateString, String studentNumber) {
-        return "";
+    private MenuChoice getLuckyMenu(String dateString, String studentNumber) {
+        // 날짜와 학생 번호를 기반으로 "운이 좋은 메뉴"를 계산
+        int hash = (dateString + studentNumber).hashCode(); // 해시값 생성
+        List<MenuChoice> menuChoices = menuChoiceRepository.findAll(); // DB에서 모든 MenuChoice 조회
+
+        if (menuChoices.isEmpty()) {
+            throw new RuntimeException("No menus available in the database");
+        }
+
+        int index = Math.abs(hash) % menuChoices.size(); // 해시값으로 리스트의 인덱스 결정
+        return menuChoices.get(index); // 운이 좋은 MenuChoice 객체 반환
     }
 
     public PlaceChoiceResponseDTO getStudentPlaceAndOthers(FortuneRankRequestDTO requestDTO) {

@@ -3,6 +3,7 @@ package com.oop.puangJumJum.controller;
 
 import com.oop.puangJumJum.dto.request.FortuneRankRequestDTO;
 import com.oop.puangJumJum.dto.response.FortuneRankResponseDTO;
+import com.oop.puangJumJum.dto.response.FortuneResponseDto;
 import com.oop.puangJumJum.dto.response.PlaceChoiceResponseDTO;
 import com.oop.puangJumJum.dto.response.StudentMenuResponseDTO;
 import com.oop.puangJumJum.service.FortuneService;
@@ -34,5 +35,11 @@ public class FortuneController {
     public ResponseEntity<PlaceChoiceResponseDTO> getStudentPlaceAndOthers(@RequestBody FortuneRankRequestDTO requestDTO) {
         PlaceChoiceResponseDTO responseDTO = fortuneService.getStudentPlaceAndOthers(requestDTO);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @PostMapping
+    public ResponseEntity<FortuneResponseDto> getStudentFortune(@RequestBody FortuneRankRequestDTO requestDTO){
+        FortuneResponseDto responseDto = fortuneService.generateAndGetFortune(requestDTO);
+        return ResponseEntity.ok(responseDto);
     }
 }
