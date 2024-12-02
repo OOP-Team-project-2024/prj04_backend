@@ -211,12 +211,10 @@ public class FortuneService {
         return menuChoices.get(index); // 운이 좋은 MenuChoice 객체 반환
     }
 
-    public PlaceChoiceResponseDTO getStudentPlaceAndOthers(FortuneRankRequestDTO requestDTO) {
-        String studentNum=requestDTO.getStudentNum();
+    public PlaceChoiceResponseDTO getStudentPlaceAndOthers(String studentNum) {
         User user = userRepository.findByStudentNum(studentNum)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-//        LocalDate today = LocalDate.now();
         Place studentPlace = placeRepository.findByUserAndDateAfter(user, LocalDate.now())
                 .orElseThrow(() -> new RuntimeException("Place not found for today"));
 
@@ -231,10 +229,10 @@ public class FortuneService {
         return new PlaceChoiceResponseDTO(user.getName(), placeChoice.getPlace(), placeChoice.getDetail(), otherUsers);
     }
 
-    public FortuneRankResponseDTO getFortuneRank(FortuneRankRequestDTO requestDTO) {
+    public FortuneRankResponseDTO getFortuneRank(String studentNum) {
         try {
-            User user = userRepository.findByStudentNum(requestDTO.getStudentNum())
-                    .orElseThrow(() -> new UserNotFoundException(requestDTO.getStudentNum()));
+            User user = userRepository.findByStudentNum(studentNum)
+                    .orElseThrow(() -> new UserNotFoundException(studentNum));
 
             List<Fortune> fortunes = fortuneRepository.findAllSortedByTotalScore(LocalDate.now());
 
@@ -250,7 +248,7 @@ public class FortuneService {
             UserRankInfoDTO myInfo = rankList.stream()
                     .filter(userInfo -> userInfo.getName().equals(user.getName()))
                     .findFirst()
-                    .orElseThrow(() -> new UserNotFoundException(requestDTO.getStudentNum()));
+                    .orElseThrow(() -> new UserNotFoundException(studentNum));
 
             for (int i = 0; i < rankList.size(); i++) {
                 rankList.get(i).setRank(i + 1);
@@ -263,8 +261,7 @@ public class FortuneService {
         }
     }
 
-    public StudentMenuResponseDTO getStudentMenuAndOthers(FortuneRankRequestDTO requestDTO) {
-        String studentNum=requestDTO.getStudentNum();
+    public StudentMenuResponseDTO getStudentMenuAndOthers(String studentNum) {
 
         User user = userRepository.findByStudentNum(studentNum)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
