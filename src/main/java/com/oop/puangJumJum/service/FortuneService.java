@@ -193,8 +193,8 @@ public class FortuneService {
         User user = userRepository.findByStudentNum(studentNum)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        LocalDateTime today = LocalDateTime.now().toLocalDate().atStartOfDay();
-        Place studentPlace = placeRepository.findByUserAndDateAfter(user, today)
+//        LocalDate today = LocalDate.now();
+        Place studentPlace = placeRepository.findByUserAndDateAfter(user, LocalDate.now())
                 .orElseThrow(() -> new RuntimeException("Place not found for today"));
 
         PlaceChoice placeChoice = studentPlace.getPlaceChoice();
@@ -213,7 +213,7 @@ public class FortuneService {
             User user = userRepository.findByStudentNum(requestDTO.getStudentNum())
                     .orElseThrow(() -> new UserNotFoundException(requestDTO.getStudentNum()));
 
-            List<Fortune> fortunes = fortuneRepository.findAllSortedByTotalScore();
+            List<Fortune> fortunes = fortuneRepository.findAllSortedByTotalScore(LocalDate.now());
 
             List<UserRankInfoDTO> rankList = fortunes.stream()
                     .map(fortune -> new UserRankInfoDTO(
