@@ -193,7 +193,7 @@ public class FortuneService {
         User user = userRepository.findByStudentNum(studentNum)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        LocalDateTime today = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDate today = LocalDate.now();
         Place studentPlace = placeRepository.findByUserAndDateAfter(user, today)
                 .orElseThrow(() -> new RuntimeException("Place not found for today"));
 
