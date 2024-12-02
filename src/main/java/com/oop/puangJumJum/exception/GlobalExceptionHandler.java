@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // OpenAI 서비스에서 예외가 발생했을 때 처리
+    @ExceptionHandler(OpenAIServiceException.class)
+    public ResponseEntity<?> handleOpenAIServiceException(OpenAIServiceException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
     // 사용자 정보를 찾을 수 없을 때 예외 처리
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {

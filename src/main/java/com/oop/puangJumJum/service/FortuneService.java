@@ -63,8 +63,8 @@ public class FortuneService {
     private PlaceChoiceRepository placeChoiceRepository;
     @Autowired
     private MenuChoiceRepository menuChoiceRepository;
-
-
+    @Autowired
+    private OpenAIService openAIService;
     public FortuneResponseDto generateAndGetFortune(FortuneRankRequestDTO requestDTO) {
         String studentNumber = requestDTO.getStudentNum();
         // 1. 날짜 설정
@@ -94,16 +94,18 @@ public class FortuneService {
                     .build();
         }
 
-        // 2. 운세 항목 점수 계산
+        // 2. 운세 항목 생성
         List<FortuneDetailDto> fortunes = Arrays.asList(
-                FortuneDetailDto.builder().type("재물운").score(calculateFortuneScore(dateString, studentNumber, MONEY_EMOJI)).detail("").build(),
-                FortuneDetailDto.builder().type("건강운").score(calculateFortuneScore(dateString, studentNumber, HEALTH_EMOJI)).detail("").build(),
-                FortuneDetailDto.builder().type("학업운").score(calculateFortuneScore(dateString, studentNumber, STUDY_EMOJI)).detail("").build(),
-                FortuneDetailDto.builder().type("애정운").score(calculateFortuneScore(dateString, studentNumber, LOVE_EMOJI)).detail("").build()
+                createFortuneDetail("재물운", calculateFortuneScore(dateString, studentNumber, MONEY_EMOJI), user.getName()),
+                createFortuneDetail("건강운", calculateFortuneScore(dateString, studentNumber, HEALTH_EMOJI), user.getName()),
+                createFortuneDetail("학업운", calculateFortuneScore(dateString, studentNumber, STUDY_EMOJI), user.getName()),
+                createFortuneDetail("애정운", calculateFortuneScore(dateString, studentNumber, LOVE_EMOJI), user.getName())
         );
-
         // 3. 총 점수
         int totalScore = fortunes.stream().mapToInt(FortuneDetailDto::getScore).sum() / fortunes.size();
+        // 총평
+        String totalFortune = openAIService.generateFortuneDescription("총평", totalScore, user.getName());
+
         // 4. 행운의 장소와 메뉴
         PlaceChoice luckyPlace = getLuckyPlace(dateString, studentNumber);
         Place place = Place.builder()
@@ -156,8 +158,16 @@ public class FortuneService {
         return FortuneResponseDto.builder()
                 .date(now)
                 .totalScore(totalScore)
-                .totalFortune("")
+                .totalFortune(totalFortune)
                 .fortunes(fortunes)
+                .build();
+    }
+    private FortuneDetailDto createFortuneDetail(String type, int score, String userName) {
+        String description = openAIService.generateFortuneDescription(type, score, userName);
+        return FortuneDetailDto.builder()
+                .type(type)
+                .score(score)
+                .detail(description)
                 .build();
     }
 
