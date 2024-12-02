@@ -1,8 +1,10 @@
 package com.oop.puangJumJum.service;
 
 import com.oop.puangJumJum.dto.request.FortuneRankRequestDTO;
+import com.oop.puangJumJum.dto.request.FortuneRequestDTO;
 import com.oop.puangJumJum.dto.response.FortuneDetailDto;
 import com.oop.puangJumJum.dto.response.FortuneResponseDto;
+import com.oop.puangJumJum.exception.DuplicateStudentNumException;
 import com.oop.puangJumJum.repository.FortuneRepository;
 import com.oop.puangJumJum.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -65,15 +67,15 @@ public class FortuneService {
     private MenuChoiceRepository menuChoiceRepository;
     @Autowired
     private OpenAIService openAIService;
-    public FortuneResponseDto generateAndGetFortune(FortuneRankRequestDTO requestDTO) {
+    public FortuneResponseDto generateAndGetFortune(FortuneRequestDTO requestDTO) {
         String studentNumber = requestDTO.getStudentNum();
+        String name = requestDTO.getName();
         // 1. 날짜 설정
         LocalDate now = LocalDate.now();
         String dateString = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         User user = userRepository.findByStudentNum(studentNumber)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                .orElseGet(() -> createNewUser(studentNumber, name));
 
         // 기존 운세 확인
         Optional<Fortune> existingFortune = fortuneRepository.findByUserAndDate(user, now);
@@ -161,6 +163,17 @@ public class FortuneService {
                 .totalFortune(totalFortune)
                 .fortunes(fortunes)
                 .build();
+    }
+    private User createNewUser(String studentNumber, String name) {
+        if (userRepository.existsByStudentNum(studentNumber)) {
+            throw new DuplicateStudentNumException(studentNumber);
+        }
+        User newUser = User.builder()
+                .studentNum(studentNumber)
+                .name(name)
+                .build();
+
+        return userRepository.save(newUser);
     }
     private FortuneDetailDto createFortuneDetail(String type, int score, String userName) {
         String description = openAIService.generateFortuneDescription(type, score, userName);

@@ -9,6 +9,12 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    // 학번 중복 예외 처리
+    @ExceptionHandler(DuplicateStudentNumException.class)
+    public ResponseEntity<?> handleDuplicateStudentNumException(DuplicateStudentNumException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
     // OpenAI 서비스에서 예외가 발생했을 때 처리
     @ExceptionHandler(OpenAIServiceException.class)
