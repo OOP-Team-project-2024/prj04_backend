@@ -21,20 +21,20 @@ public class FortuneController {
     private FortuneService fortuneService;
 
     @GetMapping("/rank")
-    public ResponseEntity<FortuneRankResponseDTO> getFortuneRank(@RequestBody FortuneRankRequestDTO requestDTO) {
-        FortuneRankResponseDTO response = fortuneService.getFortuneRank(requestDTO);
+    public ResponseEntity<FortuneRankResponseDTO> getFortuneRank(@RequestParam String studentNum) {
+        FortuneRankResponseDTO response = fortuneService.getFortuneRank(studentNum);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/menu")
-    public ResponseEntity<StudentMenuResponseDTO> getStudentMenuAndOthers(@RequestBody FortuneRankRequestDTO requestDTO) {
-        StudentMenuResponseDTO responseDTO = fortuneService.getStudentMenuAndOthers(requestDTO);
+    public ResponseEntity<StudentMenuResponseDTO> getStudentMenuAndOthers(@RequestParam String studentNum) {
+        StudentMenuResponseDTO responseDTO = fortuneService.getStudentMenuAndOthers(studentNum);
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/place")
-    public ResponseEntity<PlaceChoiceResponseDTO> getStudentPlaceAndOthers(@RequestBody FortuneRankRequestDTO requestDTO) {
-        PlaceChoiceResponseDTO responseDTO = fortuneService.getStudentPlaceAndOthers(requestDTO);
+    public ResponseEntity<PlaceChoiceResponseDTO> getStudentPlaceAndOthers(@RequestParam String studentNum) {
+        PlaceChoiceResponseDTO responseDTO = fortuneService.getStudentPlaceAndOthers(studentNum);
         return ResponseEntity.ok(responseDTO);
     }
 
