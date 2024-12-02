@@ -19,7 +19,7 @@ public class FortuneController {
     @Autowired
     private FortuneService fortuneService;
 
-    @PostMapping("/rank")
+    @GetMapping("/rank")
     public ResponseEntity<FortuneRankResponseDTO> getFortuneRank(@RequestBody FortuneRankRequestDTO requestDTO) {
         FortuneRankResponseDTO response = fortuneService.getFortuneRank(requestDTO);
         return ResponseEntity.ok(response);
